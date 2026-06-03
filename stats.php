@@ -15,6 +15,21 @@ $code = $row['code'];
 
 require_once 'includes/stats_calculations.php';
 
+// ── Insurance Stats ──────────────────────────────────────
+$stmtIns = $db->prepare("SELECT insurance_type, COUNT(*) as cnt, SUM(coverage_amount) as total_coverage,
+    SUM(premium) as total_premium FROM insurances
+    WHERE user_id = :userId AND inactive = 0 GROUP BY insurance_type");
+$stmtIns->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$resultIns = $stmtIns->execute();
+$insByType = [];
+while ($row = $resultIns->fetchArray(SQLITE3_ASSOC)) { $insByType[] = $row; }
+
+$stmtTot = $db->prepare("SELECT COUNT(*) as cnt, SUM(coverage_amount) as total_coverage,
+    SUM(premium) as total_premium FROM insurances WHERE user_id = :userId AND inactive = 0");
+$stmtTot->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$resultTot = $stmtTot->execute();
+$insTotals = $resultTot->fetchArray(SQLITE3_ASSOC);
+
 ?>
 <section class="contain">
   <?php
@@ -274,6 +289,63 @@ require_once 'includes/stats_calculations.php';
   $showPaymentMethodsGraph = count($paymentMethodDataPoints) > 1;
   if ($showCategoryCostGraph || $showMemberCostGraph || $showPaymentMethodsGraph || $showTotalMonthlyCostGraph || $showVsBudgetGraph) {
     ?>
+    <!-- Insurance Statistics -->
+    <div class="split-section" id="insurance-stats-section">
+        <h2><?= translate('insurance_statistics', $i18n) ?? 'Insurance Statistics' ?></h2>
+        <?php if (($insTotals['cnt'] ?? 0) > 0): ?>
+        <div class="stats-insurance-grid">
+            <div class="stat-card">
+                <div class="stat-card-title"><?= translate('active_insurances', $i18n) ?></div>
+                <div class="stat-card-value"><?= $insTotals['cnt'] ?></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title"><?= translate('total_coverage', $i18n) ?></div>
+                <div class="stat-card-value" style="color:#2ecc71">
+                    <?= $currencies[$mainCurrencyId]['symbol'] ?? '₹' ?><?= number_format($insTotals['total_coverage'], 0) ?>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title"><?= translate('total_premium_annual', $i18n) ?? 'Total Annual Premium' ?></div>
+                <div class="stat-card-value">
+                    <?= $currencies[$mainCurrencyId]['symbol'] ?? '₹' ?><?= number_format($insTotals['total_premium'], 0) ?>
+                </div>
+            </div>
+        </div>
+        <?php if (!empty($insByType)): ?>
+        <div class="category-boxes">
+            <?php
+            $insColors = ['vehicle'=>'#e74c3c','health'=>'#2ecc71','term'=>'#3498db','endowment'=>'#9b59b6',
+                'pension'=>'#f39c12','professional_indemnity'=>'#1abc9c','home'=>'#e67e22',
+                'travel'=>'#00cec9','life'=>'#fd79a8','ulip'=>'#a29bfe','other'=>'#636e72'];
+            $typeLabels = [
+                'vehicle'=>translate('vehicle_insurance',$i18n),'health'=>translate('health_insurance',$i18n),
+                'term'=>translate('term_insurance',$i18n),'endowment'=>translate('endowment_plan',$i18n),
+                'pension'=>translate('pension_plan',$i18n),'professional_indemnity'=>translate('professional_indemnity',$i18n),
+                'home'=>translate('home_insurance',$i18n),'travel'=>translate('travel_insurance',$i18n),
+                'life'=>translate('life_insurance',$i18n),'ulip'=>translate('ulip',$i18n),'other'=>translate('other_insurance',$i18n)
+            ];
+            foreach ($insByType as $insType):
+                $color = $insColors[$insType['insurance_type']] ?? '#636e72';
+                $label = $typeLabels[$insType['insurance_type']] ?? $insType['insurance_type'];
+            ?>
+            <div class="category-box" style="border-top: 3px solid <?= $color ?>">
+                <div class="category-name"><?= htmlspecialchars($label) ?></div>
+                <div class="category-count"><?= $insType['cnt'] ?> <?= translate('policies', $i18n) ?? 'policies' ?></div>
+                <div class="category-amount" style="color:<?= $color ?>">
+                    <?= $currencies[$mainCurrencyId]['symbol'] ?? '₹' ?><?= number_format($insType['total_coverage'], 0) ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <?php else: ?>
+        <p style="color:var(--text-color-secondary);margin:20px 0;">
+            <?= translate('no_insurance_data', $i18n) ?? 'No insurance data yet.' ?>
+            <a href="insurances.php"><?= translate('add_insurance', $i18n) ?></a>
+        </p>
+        <?php endif; ?>
+    </div>
+
     <h2><?= translate('split_views', $i18n) ?></h2>
     <div class="graphs">
       <?php

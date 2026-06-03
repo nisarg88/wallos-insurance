@@ -3113,3 +3113,72 @@ input[type="radio"]:checked+label::after {
 .dashboard-subscriptions-container::-webkit-scrollbar {
     display: none;
 }
+/* Insurance Coverage Stats - Next Renewals */
+.next-renewals {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.renewal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.renewal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.renewal-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.renewal-type {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.renewal-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.renewal-date .days-left {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+.renewal-premium {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+@media (max-width: 600px) {
+    .renewal-item {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .renewal-info {
+        flex: 1 1 100%;
+    }
+    
+    .renewal-date,
+    .renewal-premium {
+        font-size: 14px;
+    }
+}

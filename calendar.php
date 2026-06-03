@@ -60,6 +60,13 @@ $numberOfSubscriptionsToPayThisMonth = 0;
 $totalCostThisMonth = 0;
 $amountDueThisMonth = 0;
 
+// ── Insurance data for calendar ──────────────────────────
+$stmtIns = $db->prepare("SELECT * FROM insurances WHERE user_id = :userId AND inactive = 0 AND renewal_date IS NOT NULL");
+$stmtIns->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$resultIns = $stmtIns->execute();
+$insurances = [];
+while ($row = $resultIns->fetchArray(SQLITE3_ASSOC)) { $insurances[] = $row; }
+
 $query = "SELECT * FROM subscriptions WHERE user_id = :user_id AND inactive = 0";
 $stmt = $db->prepare($query);
 $stmt->bindValue(':user_id', $userId, SQLITE3_INTEGER);
@@ -131,6 +138,12 @@ $yearsToLoad = $calendarYear - $currentYear + 1;
     </div>
 
     <div class="calendar-nav">
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.85em;margin-bottom:4px;">
+        <input type="checkbox" id="showInsuranceEvents" checked
+          onchange="toggleInsuranceCalendarEvents()">
+        <i class="fa-solid fa-shield" style="color:#3498db"></i>
+        <?= translate('insurances', $i18n) ?>
+      </label>
       <?php
       if (!$sameAsCurrent) {
         ?>

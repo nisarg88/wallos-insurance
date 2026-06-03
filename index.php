@@ -92,6 +92,31 @@ $hasOverdueSubscriptions = !empty($overdueSubscriptions);
 
 require_once 'includes/stats_calculations.php';
 
+// ── Insurance data for dashboard ──────────────────────────
+$stmt = $db->prepare("SELECT COUNT(*) as cnt, SUM(coverage_amount) as total_coverage,
+    MIN(renewal_date) as next_renewal FROM insurances
+    WHERE user_id = :userId AND inactive = 0 AND renewal_date IS NOT NULL");
+$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$result = $stmt->execute();
+$insStats = $result->fetchArray(SQLITE3_ASSOC);
+$activeInsurances = $insStats['cnt'] ?? 0;
+$totalCoverage = $insStats['total_coverage'] ?? 0;
+$nextInsuranceRenewal = $insStats['next_renewal'] ?? null;
+
+// Get upcoming insurance renewals (next 3 within 90 days)
+$stmt2 = $db->prepare("SELECT name, insurer_name, insurance_type, coverage_amount, premium,
+    currency_id, renewal_date FROM insurances
+    WHERE user_id = :userId AND inactive = 0 AND renewal_date >= date('now')
+    AND renewal_date <= date('now', '+90 days')
+    ORDER BY renewal_date ASC LIMIT 3");
+$stmt2->bindValue(':userId', $userId, SQLITE3_INTEGER);
+$result2 = $stmt2->execute();
+$upcomingInsurances = [];
+while ($row = $result2->fetchArray(SQLITE3_ASSOC)) { $upcomingInsurances[] = $row; }
+
+// Currency symbol for main currency
+$mainCurrencySymbol = $currencies[$mainCurrencyId]['symbol'] ?? '₹';
+
 // Get AI Recommendations for user
 $stmt = $db->prepare("SELECT * FROM ai_recommendations WHERE user_id = :userId");
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
@@ -228,7 +253,60 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 
         <?php if (!empty($aiRecommendations)) { ?>
             <div class="ai-recommendations">
-                <h2><?= translate('ai_recommendations', $i18n) ?></h2>
+                <!-- Insurance Summary -->
+        <div class="dashboard-insurance-summary" id="dashboard-insurance-summary"<?php if($activeInsurances > 0): ?> style=""<?php endif; ?>>
+            <h2><?= translate('insurance_summary', $i18n) ?></h2>
+            <div class="dashboard-subscriptions-container">
+                <div class="dashboard-subscriptions-list">
+                    <?php if ($activeInsurances > 0): ?>
+                    <div class="insurance-stats-row">
+                        <div class="insurance-stat-box">
+                            <span class="stat-value"><?= $activeInsurances ?></span>
+                            <span class="stat-label"><?= translate('active_insurances', $i18n) ?></span>
+                        </div>
+                        <div class="insurance-stat-box">
+                            <span class="stat-value"><?= $mainCurrencySymbol ?><?= number_format($totalCoverage, 0) ?></span>
+                            <span class="stat-label"><?= translate('total_coverage', $i18n) ?></span>
+                        </div>
+                        <?php if ($nextInsuranceRenewal): ?>
+                        <div class="insurance-stat-box">
+                            <span class="stat-value"><?= formatDate($nextInsuranceRenewal, $lang) ?></span>
+                            <span class="stat-label"><?= translate('next_renewal', $i18n) ?></span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (!empty($upcomingInsurances)): ?>
+                    <div class="insurance-upcoming-list">
+                        <?php foreach ($upcomingInsurances as $ins): ?>
+                        <?php $insCurrencySymbol = $currencies[$ins['currency_id']]['symbol'] ?? $mainCurrencySymbol; ?>
+                        <div class="dashboard-subscription-card" onClick="window.location.href='insurances.php'">
+                            <span class="dashboard-logo">
+                                <?php include 'images/siteicons/svg/logo.php'; ?>
+                            </span>
+                            <span class="dashboard-name"><?= htmlspecialchars($ins['name']) ?></span>
+                            <span class="dashboard-next">
+                                <i class="fa-solid fa-rotate" title="<?= translate('renewal', $i18n) ?>"></i>
+                                <?= formatDate($ins['renewal_date'], $lang) ?>
+                            </span>
+                            <span class="dashboard-price">
+                                <?= $insCurrencySymbol ?><?= number_format($ins['premium'], 2) ?>
+                            </span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                    <a href="insurances.php" class="dashboard-view-all"><?= translate('view_all_insurances', $i18n) ?> →</a>
+                    <?php else: ?>
+                    <div class="empty-dashboard-insurance">
+                        <p><?= translate('no_active_insurances', $i18n) ?></p>
+                        <a href="insurances.php" class="button"><i class="fa-solid fa-plus"></i> <?= translate('add_insurance', $i18n) ?></a>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <h2><?= translate('ai_recommendations', $i18n) ?></h2>
                 <div class="ai-recommendations-container">
                     <ul class="ai-recommendations-list">
                         <?php
