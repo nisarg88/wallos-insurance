@@ -248,6 +248,10 @@ $page = basename($_SERVER['PHP_SELF']);
           <?php include "images/siteicons/svg/mobile-menu/subscriptions.php"; ?>
           <?= translate('subscriptions', $i18n) ?>
         </a>
+        <a href="insurances.php" class="nav-link <?= $insurancesClass ?>" title="<?= translate('insurances', $i18n) ?>">
+          <?php include "images/siteicons/svg/mobile-menu/shield.php"; ?>
+          <?= translate('insurances', $i18n) ?>
+        </a>
         <a href="calendar.php" class="nav-link <?= $calendarClass ?>" title="<?= translate('calendar', $i18n) ?>">
           <?php include "images/siteicons/svg/mobile-menu/calendar.php"; ?>
           <?= translate('calendar', $i18n) ?>
