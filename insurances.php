@@ -146,8 +146,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
   </header>
   <form id="ins-form">
 
-    <!-- Section: Policy Details -->
-    <div class="form-section-title"><?= translate('insurance_policy_details', $i18n) ?></div>
     <div class="form-group">
       <input type="text" id="ins-name" name="name" autocomplete="off"
         placeholder="<?= translate('insurance_name', $i18n) ?>" required>
@@ -172,8 +170,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
         placeholder="<?= translate('url', $i18n) ?>">
     </div>
 
-    <!-- Section: Coverage & Premium -->
-    <div class="form-section-title"><?= translate('insurance_coverage', $i18n) ?></div>
     <div class="form-group-inline">
       <input type="number" step="0.01" id="ins-coverage-amount" name="coverage_amount" autocomplete="off"
         placeholder="<?= translate('coverage_amount', $i18n) ?>">
@@ -209,8 +205,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
       </div>
     </div>
 
-    <!-- Section: Dates -->
-    <div class="form-section-title"><?= translate('policy_dates', $i18n) ?></div>
     <div class="form-group">
       <label for="ins-start-date"><?= translate('start_date', $i18n) ?></label>
       <div class="date-wrapper">
@@ -240,8 +234,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
       </div>
     </div>
 
-    <!-- Section: Portal Credentials -->
-    <div class="form-section-title"><?= translate('insurance_portal_credentials', $i18n) ?></div>
     <div class="form-group">
       <input type="text" id="ins-portal-url" name="portal_url" autocomplete="off"
         placeholder="<?= translate('portal_url', $i18n) ?>">
@@ -255,8 +247,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
         placeholder="<?= translate('portal_password', $i18n) ?>">
     </div>
 
-    <!-- Section: Nominee & Beneficiary -->
-    <div class="form-section-title"><?= translate('insurance_nominee_beneficiary', $i18n) ?></div>
     <div class="form-group-inline">
       <input type="text" id="ins-nominee" name="nominee" autocomplete="off"
         placeholder="<?= translate('nominee', $i18n) ?>">
@@ -264,7 +254,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
         placeholder="<?= translate('beneficiary', $i18n) ?>">
     </div>
 
-    <!-- Section: Misc -->
     <div class="form-group">
       <select id="ins-payment-method" name="payment_method_id">
         <option value=""><?= translate('payment_method', $i18n) ?></option>
@@ -272,7 +261,6 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
         <option value="<?= $pm['id'] ?>"><?= htmlspecialchars($pm['name']) ?></option>
         <?php endforeach; ?>
       </select>
-    </div>
     <div class="form-group">
       <select id="ins-payer" name="payer_user_id">
         <option value=""><?= translate('paid_by', $i18n) ?></option>
