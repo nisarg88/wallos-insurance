@@ -115,7 +115,7 @@ $upcomingInsurances = [];
 while ($row = $result2->fetchArray(SQLITE3_ASSOC)) { $upcomingInsurances[] = $row; }
 
 // Currency symbol for main currency
-$mainCurrencySymbol = $currencies[$mainCurrencyId]['symbol'] ?? '₹';
+$mainCurrencySymbol = $currencies[$userData['main_currency']]['symbol'] ?? '₹';
 
 // Get AI Recommendations for user
 $stmt = $db->prepare("SELECT * FROM ai_recommendations WHERE user_id = :userId");
