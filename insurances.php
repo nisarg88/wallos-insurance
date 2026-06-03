@@ -141,7 +141,7 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
 <!-- Insurance Form Modal -->
 <section class="subscription-form" id="insurance-form" style="display:none;">
   <header>
-    <h3 id="insurance-form-title"><?= translate('add_insurance', $i18n) ?></h3>
+    <h3 id="insurance-form-title"><?= translate('add_insurance', $i18n) ?? translate('add_new_insurance', $i18n) ?></h3>
     <span class="fa-solid fa-xmark close-form" onClick="closeInsuranceForm()"></span>
   </header>
   <form id="ins-form">
