@@ -177,12 +177,12 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
     <div class="form-group-inline">
       <input type="number" step="0.01" id="ins-coverage-amount" name="coverage_amount" autocomplete="off"
         placeholder="<?= translate('coverage_amount', $i18n) ?>">
-      <input type="number" step="0.01" id="ins-sum-assured" name="sum_assured" autocomplete="off"
-        placeholder="<?= translate('sum_assured', $i18n) ?>">
+
     </div>
     <div class="form-group-inline">
       <input type="number" step="0.01" id="ins-premium" name="premium" autocomplete="off"
         placeholder="<?= translate('premium_amount', $i18n) ?>">
+      <label for="ins-currency"><?= translate('currency', $i18n) ?></label>
       <select id="ins-currency" name="currency_id">
         <?php foreach ($currencies as $currency): ?>
         <option value="<?= $currency['id'] ?>" <?= ($currency['id'] == $mainCurrencyId) ? 'selected' : '' ?>>
@@ -219,9 +219,7 @@ $headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
       </div>
     </div>
     <div class="form-group">
-      <label for="ins-tenure">
-        <?= translate('policy_tenure_years', $i18n) ?>
-      </label>
+      <label for="ins-tenure"><?= translate('tenure_years', $i18n) ?? 'Tenure (years)' ?></label>
       <div class="date-wrapper">
         <input type="number" id="ins-tenure" name="tenure_years" min="1" max="50"
           value="1" autocomplete="off"
