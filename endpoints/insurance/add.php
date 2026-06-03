@@ -32,6 +32,7 @@ $coverageType = validate($_POST['coverage_type'] ?? '');
 $coverageAmount = floatval($_POST['coverage_amount'] ?? 0);
 $sumAssured = floatval($_POST['sum_assured'] ?? 0);
 $premium = floatval($_POST['premium'] ?? 0);
+$tenureYears = intval($_POST['tenure_years'] ?? 1);
 $currencyId = intval($_POST['currency_id'] ?? 1);
 $cycle = intval($_POST['cycle'] ?? 4);
 $frequency = intval($_POST['frequency'] ?? 1);
@@ -122,13 +123,13 @@ if ($isEdit) {
                 coverage_amount, sum_assured, premium, currency_id, cycle, frequency,
                 renewal_date, start_date, payment_method_id, payer_user_id, notify,
                 notify_days_before, portal_url, portal_username, portal_password,
-                nominee, beneficiary, notes, url, auto_renew, inactive, user_id
+                nominee, beneficiary, notes, url, auto_renew, inactive, tenure_years, user_id
             ) VALUES (
                 :name, :insuranceType, :logo, :policyNumber, :insurerName, :coverageType,
                 :coverageAmount, :sumAssured, :premium, :currencyId, :cycle, :frequency,
                 :renewalDate, :startDate, :paymentMethodId, :payerUserId, :notify,
                 :notifyDaysBefore, :portalUrl, :portalUsername, :portalPassword,
-                :nominee, :beneficiary, :notes, :url, :autoRenew, :inactive, :userId
+                :nominee, :beneficiary, :notes, :url, :autoRenew, :inactive, :tenureYears, :userId
             )";
 }
 
@@ -165,6 +166,7 @@ $stmt->bindParam(':inactive', $inactive, SQLITE3_INTEGER);
 if ($isEdit) {
     $stmt->bindParam(':id', $id, SQLITE3_INTEGER);
 }
+$stmt->bindParam(':tenureYears', $tenureYears, SQLITE3_INTEGER);
 $stmt->bindParam(':userId', $userId, SQLITE3_INTEGER);
 
 if ($stmt->execute()) {

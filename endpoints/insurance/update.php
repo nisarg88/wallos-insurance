@@ -21,6 +21,7 @@ $insurerName = validate($_POST['insurer_name'] ?? '');
 $coverageAmount = floatval($_POST['coverage_amount'] ?? 0);
 $sumAssured = floatval($_POST['sum_assured'] ?? 0);
 $premium = floatval($_POST['premium'] ?? 0);
+$tenureYears = intval($_POST['tenure_years'] ?? 1);
 $currencyId = intval($_POST['currency_id'] ?? 1);
 $cycle = intval($_POST['cycle'] ?? 4);
 $frequency = intval($_POST['frequency'] ?? 1);
@@ -122,7 +123,8 @@ $query = "UPDATE insurances SET
     notes = :notes,
     url = :url,
     auto_renew = :autoRenew,
-    inactive = :inactive";
+    inactive = :inactive,
+    tenure_years = :tenureYears";
 
 if ($logoName) {
     $query .= ", logo = :logo";
@@ -156,6 +158,7 @@ $stmt->bindValue(':notes', $notes, SQLITE3_TEXT);
 $stmt->bindValue(':url', $url, SQLITE3_TEXT);
 $stmt->bindValue(':autoRenew', $autoRenew, SQLITE3_INTEGER);
 $stmt->bindValue(':inactive', $inactive, SQLITE3_INTEGER);
+$stmt->bindValue(':tenureYears', $tenureYears, SQLITE3_INTEGER);
 if ($logoName) {
     $stmt->bindValue(':logo', $logoName, SQLITE3_TEXT);
 }
