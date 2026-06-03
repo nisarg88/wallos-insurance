@@ -505,6 +505,11 @@ $i18n = [
     "ai_insurance_premium_optimization" => "You're paying {amount}/month across {count} policies. Consider bundling or shopping around for better rates.",
     "ai_insurance_renewal_due" => "Insurance \"{name}\" renews on {date}. Review coverage and shop around.",
 
+  "insurance_dashboard" => "Insurance Dashboard",
+  "policy_dates" => "Policy Dates",
+  "policy_tenure_years" => "Policy Tenure (years)",
+  "tenure_years" => "Tenure (years)",
+  "auto_calculate_renewal" => "Auto-calculate renewal date",
 ];
 
 

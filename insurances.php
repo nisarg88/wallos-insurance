@@ -3,56 +3,61 @@
 require_once 'includes/header.php';
 require_once 'includes/getdbkeys.php';
 
+include_once 'includes/list_insurances.php';
+
 $sort = "renewal_date";
 $sortOrder = $sort;
 
-// Get cycles for the form
-$query = "SELECT * FROM cycles";
-$result = $db->query($query);
-$cycles = [];
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $cycles[] = $row;
+$allowedSortCriteria = ['name', 'id', 'renewal_date', 'premium', 'insurance_type', 'inactive'];
+$order = ($sort === "premium" || $sort === "id") ? "DESC" : "ASC";
+
+if (!in_array($sort, $allowedSortCriteria)) {
+    $sort = "renewal_date";
 }
 
-// Get currencies
-$query = "SELECT * FROM currencies WHERE user_id = :userId ORDER BY id ASC";
-$stmt = $db->prepare($query);
-$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$currencies = [];
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $currencies[] = $row;
+$sql = "SELECT * FROM insurances WHERE user_id = :userId";
+
+$params = [];
+
+if (isset($_GET['state']) && $_GET['state'] !== "") {
+    $sql .= " AND inactive = :inactive";
+    $params[':inactive'] = intval($_GET['state']);
 }
 
-// Get payment methods
-$query = "SELECT * FROM payment_methods WHERE user_id = :userId AND enabled = 1 ORDER BY 'order' ASC";
-$stmt = $db->prepare($query);
-$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$paymentMethods = [];
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $paymentMethods[] = $row;
+$orderByClauses = ["inactive ASC", "$sort $order"];
+if ($sort !== "renewal_date") {
+    $orderByClauses[] = "renewal_date ASC";
 }
 
-// Get household members
-$query = "SELECT * FROM household WHERE user_id = :userId";
-$stmt = $db->prepare($query);
+$sql .= " ORDER BY " . implode(", ", $orderByClauses);
+
+$stmt = $db->prepare($sql);
 $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value, SQLITE3_INTEGER);
+}
 $result = $stmt->execute();
-$members = [];
+
+$insurances = [];
 while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $members[] = $row;
+    $insurances[] = $row;
 }
 
-$mainCurrency = null;
-$query = "SELECT main_currency FROM user WHERE id = :userId";
-$stmt = $db->prepare($query);
-$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$row = $result->fetchArray(SQLITE3_ASSOC);
-$mainCurrencyId = $row['main_currency'] ?? 1;
+// Get currencies keyed by id
+$currenciesById = [];
+foreach ($currencies as $c) {
+    $currenciesById[$c['id']] = $c;
+}
 
-// Insurance types with icons
+// Attach currency info to each insurance
+foreach ($insurances as &$ins) {
+    $cid = $ins['currency_id'] ?? 1;
+    $ins['currency_code'] = $currenciesById[$cid]['code'] ?? 'INR';
+    $ins['currency_symbol'] = $currenciesById[$cid]['symbol'] ?? '₹';
+}
+unset($ins);
+
+// Insurance types
 $insuranceTypes = [
     'vehicle' => translate('vehicle_insurance', $i18n),
     'health' => translate('health_insurance', $i18n),
@@ -67,106 +72,12 @@ $insuranceTypes = [
     'other' => translate('other_insurance', $i18n),
 ];
 
-// Get active insurances for stats display
-$query = "SELECT
-    COUNT(*) as total_count,
-    SUM(CASE WHEN inactive = 0 THEN 1 ELSE 0 END) as active_count,
-    SUM(CASE WHEN inactive = 0 THEN coverage_amount ELSE 0 END) as total_coverage,
-    SUM(CASE WHEN inactive = 0 THEN sum_assured ELSE 0 END) as total_sum_assured,
-    SUM(CASE WHEN inactive = 0 THEN premium ELSE 0 END) as total_premium
-    FROM insurances WHERE user_id = :userId";
-$stmt = $db->prepare($query);
-$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$stats = $result->fetchArray(SQLITE3_ASSOC);
-
-// Get coverage by type for chart
-$query = "SELECT insurance_type, SUM(coverage_amount) as total_coverage, SUM(premium) as total_premium, COUNT(*) as count
-          FROM insurances WHERE user_id = :userId AND inactive = 0
-          GROUP BY insurance_type";
-$stmt = $db->prepare($query);
-$stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$coverageByType = [];
-while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-    $coverageByType[$row['insurance_type']] = $row;
-}
-
+$headerClass = count($insurances) > 0 ? "main-actions" : "main-actions hidden";
 ?>
-<style>
-.insurance-card .coverage-badge {
-    font-size: 0.75em;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: var(--main-color, #4a90d9);
-    color: white;
-    margin-left: 6px;
-}
-.insurance-portal-section {
-    background: var(--hover-color, #f5f5f5);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin: 8px 0;
-}
-.insurance-portal-section .cred-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 3px 0;
-    font-size: 0.9em;
-}
-.insurance-portal-section .cred-row .label {
-    color: #888;
-}
-.insurance-portal-section .cred-row .value {
-    font-family: monospace;
-}
-.insurance-summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-}
-.insurance-summary-card {
-    background: var(--card-bg, #1e1e1e);
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-}
-.insurance-summary-card .value {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: var(--main-color, #4a90d9);
-}
-.insurance-summary-card .label {
-    font-size: 0.8em;
-    color: #888;
-    margin-top: 4px;
-}
-.insurance-type-badge {
-    display: inline-block;
-    font-size: 0.7em;
-    padding: 2px 8px;
-    border-radius: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.type-vehicle { background: #3498db; color: white; }
-.type-health { background: #2ecc71; color: white; }
-.type-term { background: #e74c3c; color: white; }
-.type-endowment { background: #9b59b6; color: white; }
-.type-pension { background: #f39c12; color: white; }
-.type-professional_indemnity { background: #1abc9c; color: white; }
-.type-home { background: #e67e22; color: white; }
-.type-travel { background: #3498db; color: white; }
-.type-life { background: #c0392b; color: white; }
-.type-ulip { background: #8e44ad; color: white; }
-.type-other { background: #7f8c8d; color: white; }
-</style>
 
 <section class="contain">
-  <header class="main-actions" id="main-actions">
-    <button class="button" onClick="addInsurance()">
+  <header class="<?= $headerClass ?>" id="main-actions">
+    <button class="button" onClick="openAddInsurance(event)">
       <i class="fa-solid fa-circle-plus"></i>
       <?= translate('new_insurance', $i18n) ?>
     </button>
@@ -177,6 +88,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         <span class="fa-solid fa-magnifying-glass search-icon"></span>
         <span class="fa-solid fa-xmark clear-search" onClick="clearSearchInsurance()"></span>
       </div>
+
       <div class="filtermenu on-dashboard">
         <button class="button secondary-button" id="filtermenu-button" title="<?= translate("filter", $i18n) ?>">
           <i class="fa-solid fa-filter"></i>
@@ -184,50 +96,45 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         <div class="filtermenu-content" id="filter-menu-insurance">
           <div class="filter-title"><?= translate('insurance_type', $i18n) ?></div>
           <?php foreach ($insuranceTypes as $type => $label): ?>
-          <div class="filter-item" data-type="<?= $type ?>" onClick="filterByType('<?= $type ?>')"><?= $label ?></div>
+          <div class="filter-item" data-type="<?= $type ?>" onClick="filterByTypeInsurance('<?= $type ?>')"><?= $label ?></div>
           <?php endforeach; ?>
         </div>
       </div>
+
       <div class="sort-container">
-        <button class="button secondary-button" value="Sort" onClick="toggleSortOptionsInsurance()" id="sort-button-insurance"
+        <button class="button secondary-button" value="Sort" onClick="toggleSortOptions()" id="sort-button-insurance"
           title="<?= translate('sort', $i18n) ?>">
           <i class="fa-solid fa-arrow-down-wide-short"></i>
         </button>
-        <div class="sort-options-content" id="sort-options-insurance">
+        <div class="sort-options" id="sort-options-insurance">
           <div class="filter-title"><?= translate('sort', $i18n) ?></div>
-          <div class="filter-item" data-sort="renewal_date" onClick="sortInsurances('renewal_date')"><?= translate('next_renewal', $i18n) ?></div>
-          <div class="filter-item" data-sort="name" onClick="sortInsurances('name')"><?= translate('name', $i18n) ?></div>
-          <div class="filter-item" data-sort="premium" onClick="sortInsurances('premium')"><?= translate('premium', $i18n) ?></div>
-          <div class="filter-item" data-sort="coverage_amount" onClick="sortInsurances('coverage_amount')"><?= translate('coverage_amount', $i18n) ?></div>
-          <div class="filter-item" data-sort="insurance_type" onClick="sortInsurances('insurance_type')"><?= translate('insurance_type', $i18n) ?></div>
+          <div class="filter-item" data-sort="renewal_date" onClick="sortInsurancesBy('renewal_date')"><?= translate('next_renewal', $i18n) ?></div>
+          <div class="filter-item" data-sort="name" onClick="sortInsurancesBy('name')"><?= translate('name', $i18n) ?></div>
+          <div class="filter-item" data-sort="premium" onClick="sortInsurancesBy('premium')"><?= translate('premium', $i18n) ?></div>
+          <div class="filter-item" data-sort="coverage_amount" onClick="sortInsurancesBy('coverage_amount')"><?= translate('coverage_amount', $i18n) ?></div>
+          <div class="filter-item" data-sort="insurance_type" onClick="sortInsurancesBy('insurance_type')"><?= translate('insurance_type', $i18n) ?></div>
         </div>
       </div>
     </div>
   </header>
 
-  <?php if ($stats['active_count'] > 0): ?>
-  <div class="insurance-summary-cards">
-    <div class="insurance-summary-card">
-      <div class="value"><?= $stats['active_count'] ?></div>
-      <div class="label"><?= translate('active_insurances', $i18n) ?></div>
-    </div>
-    <div class="insurance-summary-card">
-      <div class="value"><?= number_format($stats['total_coverage'] ?? 0) ?></div>
-      <div class="label"><?= translate('total_coverage', $i18n) ?> (<?= $mainCurrency ? $currencies[0]['code'] ?? 'INR' : 'INR' ?>)</div>
-    </div>
-    <div class="insurance-summary-card">
-      <div class="value"><?= number_format($stats['total_sum_assured'] ?? 0) ?></div>
-      <div class="label"><?= translate('total_sum_assured', $i18n) ?></div>
-    </div>
-    <div class="insurance-summary-card">
-      <div class="value"><?= number_format($stats['total_premium'] ?? 0) ?>/mo</div>
-      <div class="label"><?= translate('total_premium_monthly', $i18n) ?></div>
-    </div>
-  </div>
-  <?php endif; ?>
+  <div class="subscriptions" id="insurances-list">
+    <?php
+    if (!empty($insurances)) {
+        printInsurances($insurances, $sort, $insuranceTypes, $i18n, "", $currenciesById, $lang, $colorTheme);
+    }
 
-  <div class="insurances" id="insurances-list">
-    <!-- Insurances loaded via JS -->
+    if (count($insurances) == 0) {
+    ?>
+    <div class="empty-page">
+      <img src="images/siteimages/empty.png" alt="<?= translate('empty_page', $i18n) ?>" />
+      <p><?= translate('no_insurances_yet', $i18n) ?></p>
+      <button class="button" onClick="openAddInsurance(event)">
+        <i class="fa-solid fa-circle-plus"></i>
+        <?= translate('add_first_insurance', $i18n) ?>
+      </button>
+    </div>
+    <?php } ?>
   </div>
 </section>
 
@@ -292,7 +199,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
           <option value="<?= $i ?>"><?= $i ?></option>
           <?php endfor; ?>
         </select>
-        <select id="ins-cycle" name="cycle" style="width:70%">
+        <select id="ins-cycle" name="cycle" style="width:70%" onchange="calculateInsuranceRenewalDate()">
           <?php foreach ($cycles as $c): ?>
           <option value="<?= $c['id'] ?>" <?= ($c['id'] == 4) ? 'selected' : '' ?>>
             <?= translate(strtolower($c['name']), $i18n) ?>
@@ -303,17 +210,35 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     </div>
 
     <!-- Section: Dates -->
-    <div class="form-section-title"><?= translate('renewal_date', $i18n) ?></div>
-    <div class="form-group">
-      <label for="ins-renewal-date"><?= translate('next_renewal', $i18n) ?></label>
-      <div class="date-wrapper">
-        <input type="date" id="ins-renewal-date" name="renewal_date" autocomplete="off">
-      </div>
-    </div>
+    <div class="form-section-title"><?= translate('policy_dates', $i18n) ?></div>
     <div class="form-group">
       <label for="ins-start-date"><?= translate('start_date', $i18n) ?></label>
       <div class="date-wrapper">
-        <input type="date" id="ins-start-date" name="start_date" autocomplete="off">
+        <input type="date" id="ins-start-date" name="start_date" autocomplete="off"
+          onchange="calculateInsuranceRenewalDate()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="ins-tenure">
+        <?= translate('policy_tenure_years', $i18n) ?>
+      </label>
+      <div class="date-wrapper">
+        <input type="number" id="ins-tenure" name="tenure_years" min="1" max="50"
+          value="1" autocomplete="off"
+          onchange="calculateInsuranceRenewalDate()"
+          placeholder="<?= translate('tenure_years', $i18n) ?>">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="ins-renewal-date">
+        <?= translate('next_renewal', $i18n) ?>
+        <button type="button" class="button secondary-button" style="margin-left:8px;padding:2px 8px;font-size:0.8em;"
+          onClick="calculateInsuranceRenewalDate()" title="<?= translate('auto_calculate_renewal', $i18n) ?>">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </button>
+      </label>
+      <div class="date-wrapper">
+        <input type="date" id="ins-renewal-date" name="renewal_date" autocomplete="off">
       </div>
     </div>
 
@@ -391,7 +316,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
   </form>
 </section>
 
-<script src="scripts/insurances.js?v=1.0.0"></script>
+<script src="scripts/insurances.js?v=1.1.0"></script>
 <script>
 window.translatedInsuranceTypes = <?= json_encode($insuranceTypes) ?>;
 </script>
