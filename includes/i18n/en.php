@@ -35,6 +35,7 @@ $i18n = [
     "profile" => "Profile",
     "dashboard" => "Dashboard",
     "subscriptions" => "Subscriptions",
+    "insurances" => "Insurances",
     "stats" => "Statistics",
     "settings" => "Settings",
     "admin" => "Admin",
@@ -425,9 +426,84 @@ $i18n = [
     "total_cost" => "Total Cost",
     "export_icalendar" => "Export iCalendar",
     "over_budget_warning" => "You're over budget",
-    // TOTP Page
+// TOTP Page
     "insert_totp_code" => "Insert TOTP code",
 
+    // ============================================================
+    // INSURANCE TRACKER
+    // ============================================================
+    // Header nav
+    "insurances" => "Insurances",
+    // Insurance page
+    "insurance" => "Insurance",
+    "no_insurances_yet" => "You don't have any insurances yet",
+    "add_first_insurance" => "Add first insurance",
+    "new_insurance" => "New Insurance",
+    "edit_insurance" => "Edit Insurance",
+    "insurance_policy_details" => "Policy Details",
+    "insurance_coverage" => "Coverage",
+    "insurance_portal_credentials" => "Portal Credentials",
+    "insurance_nominee_beneficiary" => "Nominee & Beneficiary",
+    "insurance_deleted" => "Insurance deleted successfully",
+    "insurance_added" => "Insurance added successfully",
+    "insurance_updated" => "Insurance updated successfully",
+    "error_deleting_insurance" => "Error deleting insurance",
+    "add_insurance" => "Add Insurance",
+    "no_matching_insurances" => "No matching insurances",
+    // Insurance fields
+    "insurance_type" => "Insurance Type",
+    "vehicle_insurance" => "Vehicle Insurance",
+    "health_insurance" => "Health Insurance",
+    "term_insurance" => "Term Insurance",
+    "endowment_plan" => "Endowment Plan",
+    "pension_plan" => "Pension Plan",
+    "professional_indemnity" => "Professional Indemnity",
+    "home_insurance" => "Home Insurance",
+    "travel_insurance" => "Travel Insurance",
+    "life_insurance" => "Life Insurance",
+    "ulip" => "ULIP",
+    "other_insurance" => "Other",
+    "policy_number" => "Policy Number",
+    "insurer_name" => "Insurer Name",
+    "coverage_type" => "Coverage Type",
+    "coverage_amount" => "Coverage Amount",
+    "sum_assured" => "Sum Assured",
+    "premium" => "Premium",
+    "premium_amount" => "Premium Amount",
+    "renewal_date" => "Renewal Date",
+    "next_renewal" => "Next Renewal",
+    "portal_url" => "Portal URL",
+    "portal_username" => "Portal Username",
+    "portal_password" => "Portal Password",
+    "nominee" => "Nominee",
+    "beneficiary" => "Beneficiary",
+    "auto_renew" => "Auto Renewal",
+    "insurance_name" => "Insurance Name",
+    // Statistics page - insurance
+    "insurance_coverage_summary" => "Insurance Coverage Summary",
+    "total_coverage" => "Total Coverage",
+    "total_sum_assured" => "Total Sum Assured",
+    "total_premium_monthly" => "Total Monthly Premium",
+    "total_premium_yearly" => "Total Yearly Premium",
+    "active_insurances" => "Active Insurances",
+    "inactive_insurances" => "Inactive Insurances",
+    "coverage_by_type" => "Coverage by Type",
+    "premium_by_type" => "Premium by Type",
+    "coverage_vs_premium" => "Coverage vs Premium",
+    // Calendar
+    "insurance_renewal" => "Insurance Renewal",
+    "insurance_renewals" => "Insurance Renewals",
+    // Notifications
+    "insurance_renewal_reminder" => "Insurance Renewal Reminder",
+    "insurance_renewal_notification_subject" => "Insurance Renewal Due: {name}",
+    "insurance_renewal_notification_body" => "Your insurance \"{name}\" (Policy: {policy_number}) from {insurer} is due for renewal on {renewal_date}. Coverage: {coverage_amount}. Premium: {premium}.",
+    // AI Recommendations
+    "ai_insurance_recommendations" => "Insurance AI Recommendations",
+    "ai_insurance_review" => "Consider reviewing your insurance coverage. Your total coverage of {coverage} may be insufficient for your {count} active policies.",
+    "ai_insurance_renewal_alert" => "You have {count} insurance policies renewing in the next {days} days.",
+    "ai_insurance_portfolio_gap" => "Your insurance portfolio may have gaps. Consider reviewing: {gaps}",
+    "ai_insurance_premium_optimization" => "You're paying {amount}/month across {count} policies. Consider bundling or shopping around for better rates.",
+    "ai_insurance_renewal_due" => "Insurance \"{name}\" renews on {date}. Review coverage and shop around.",
 
 ];
 

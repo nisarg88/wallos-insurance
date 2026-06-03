@@ -181,9 +181,12 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
             <a href="." class="mobileNavigationHideOnMobile">
               <?php include "images/siteicons/svg/mobile-menu/home.php"; ?>
               <?= translate('dashboard', $i18n) ?></a>
-            <a href="subscriptions.php" class="mobileNavigationHideOnMobile">
+<a href="subscriptions.php" class="mobileNavigationHideOnMobile">
               <?php include "images/siteicons/svg/mobile-menu/subscriptions.php"; ?>
-              <?= translate('subscriptions', $i18n) ?></a>  
+              <?= translate('subscriptions', $i18n) ?></a>
+            <a href="insurances.php" class="mobileNavigationHideOnMobile">
+              <?php include "images/siteicons/svg/mobile-menu/shield.php"; ?>
+              <?= translate('insurances', $i18n) ?></a>
             <a href="calendar.php" class="mobileNavigationHideOnMobile">
                 <?php include "images/siteicons/svg/mobile-menu/calendar.php"; ?>
                 <?= translate('calendar', $i18n) ?></a>
@@ -223,13 +226,14 @@ $mobileNavigation = $settings['mobile_nav'] ? "mobile-navigation" : "";
 
   <?php
   // find out which page is being viewed
-  $page = basename($_SERVER['PHP_SELF']);
-  $dashboardClass = $page === 'index.php' ? 'active' : '';
-  $subscriptionsClass = $page === 'subscriptions.php' ? 'active' : '';
-  $calendarClass = $page === 'calendar.php' ? 'active' : '';
-  $statsClass = $page === 'stats.php' ? 'active' : '';
-  $settingsClass = $page === 'settings.php' ? 'active' : '';
-  $profileClass = $page === 'profile.php' ? 'active' : '';
+$page = basename($_SERVER['PHP_SELF']);
+    $dashboardClass = $page === 'index.php' ? 'active' : '';
+    $subscriptionsClass = $page === 'subscriptions.php' ? 'active' : '';
+    $calendarClass = $page === 'calendar.php' ? 'active' : '';
+    $statsClass = $page === 'stats.php' ? 'active' : '';
+    $settingsClass = $page === 'settings.php' ? 'active' : '';
+    $profileClass = $page === 'profile.php' ? 'active' : '';
+    $insurancesClass = $page === 'insurances.php' ? 'active' : '';
   ?>
 
   <?php
